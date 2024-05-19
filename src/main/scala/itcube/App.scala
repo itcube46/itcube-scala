@@ -1,8 +1,9 @@
 package itcube
 
 import itcube.config.HttpServerConfig
-import itcube.repository.user.PGPublisherRepository
-import itcube.rest.api.PublisherRoutes
+import itcube.repository.author.PGAuthorRepository
+import itcube.repository.publisher.PGPublisherRepository
+import itcube.rest.api.{AuthorRoutes, PublisherRoutes}
 import zio._
 import zio.config.typesafe.FromConfigSourceTypesafe
 import zio.http.Middleware.{CorsConfig, cors}
@@ -37,7 +38,7 @@ object App extends ZIOAppDefault {
 
   private val corsConfig: CorsConfig = CorsConfig()
 
-  private val routes = PublisherRoutes()
+  private val routes = PublisherRoutes() ++ AuthorRoutes()
 
   def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] = {
     (Server
@@ -49,6 +50,7 @@ object App extends ZIOAppDefault {
         //nettyConfig,
         serverConfig,
         PGPublisherRepository.layer,
+        PGAuthorRepository.layer,
         Server.live
       )
   }

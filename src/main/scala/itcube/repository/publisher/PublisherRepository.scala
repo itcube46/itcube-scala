@@ -1,4 +1,4 @@
-package itcube.repository.user
+package itcube.repository.publisher
 
 import itcube.data.Publisher
 import zio._
@@ -17,7 +17,7 @@ trait PublisherRepository {
 
 object PublisherRepository {
   def all: ZIO[PublisherRepository, Throwable, List[Publisher]] =
-    ZIO.serviceWithZIO[PublisherRepository](_.all)
+    ZIO.serviceWithZIO[PublisherRepository](repo => repo.all)
 
   def findById(id: String): ZIO[PublisherRepository, Throwable, Option[Publisher]] =
     ZIO.serviceWithZIO[PublisherRepository](_.findById(id))

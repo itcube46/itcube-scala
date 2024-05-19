@@ -1,4 +1,4 @@
-package itcube.repository.user
+package itcube.repository.publisher
 
 import io.getquill.{EntityQuery, Escape, PostgresZioJdbcContext, Quoted}
 import itcube.data.Publisher

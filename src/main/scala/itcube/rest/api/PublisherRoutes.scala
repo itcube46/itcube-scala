@@ -1,12 +1,12 @@
 package itcube.rest.api
 
 import itcube.data.Publisher
-import itcube.repository.user.PublisherRepository
+import itcube.repository.publisher.PublisherRepository
 import zio.http._
 import zio.schema.codec.JsonCodec.schemaBasedBinaryCodec
 
+/** API издателей. */
 object PublisherRoutes {
-
   def apply(): Routes[PublisherRepository, Response] = {
     Routes(
       // GET /publishers
@@ -42,8 +42,8 @@ object PublisherRoutes {
             .mapBoth(
               error => Response.internalServerError(error.getMessage),
               {
-                case Some(user) =>
-                  Response(body = Body.from(user))
+                case Some(publisher) =>
+                  Response(body = Body.from(publisher))
                 case None =>
                   Response.notFound(s"Publisher $id not found!")
               }
@@ -51,5 +51,4 @@ object PublisherRoutes {
       )
     )
   }
-
 }
