@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS public."Books"
     "title" character varying(50) NOT NULL,
     "isbn" character varying(20),
     "year" integer,
+    "image" text,
+    "annotation" text,
     "publisherId" uuid,
 
     CONSTRAINT "BookPK" PRIMARY KEY ("id"),
@@ -41,6 +43,7 @@ CREATE TABLE IF NOT EXISTS public."BooksAuthors"
     "bookId" uuid NOT NULL,
     "authorId" uuid NOT NULL,
 
+    CONSTRAINT "BookAuthorPK" PRIMARY KEY ("bookId", "authorId"),
     CONSTRAINT "AuthorFK" FOREIGN KEY ("authorId")
         REFERENCES public."Authors" ("id") MATCH SIMPLE
         ON UPDATE NO ACTION
@@ -70,6 +73,7 @@ CREATE TABLE IF NOT EXISTS public."UsersBooks"
     "userId" uuid NOT NULL,
     "bookId" uuid NOT NULL,
 
+    CONSTRAINT "UserBookPK" PRIMARY KEY ("userId", "bookId"),
     CONSTRAINT "BookFK" FOREIGN KEY ("bookId")
         REFERENCES public."Books" ("id") MATCH SIMPLE
         ON UPDATE NO ACTION

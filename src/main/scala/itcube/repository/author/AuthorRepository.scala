@@ -1,29 +1,51 @@
 package itcube.repository.author
 
-import itcube.data.Author
-import zio.{Task, ZIO}
+import itcube.entity.Author
+import zio._
 
-import java.util.UUID
-
+/** Репозиторий авторов. */
 trait AuthorRepository {
+  /** Получить всех авторов. */
   def all: Task[List[Author]]
 
+  /** Получить автора по ID. */
   def findById(id: String): Task[Option[Author]]
 
-  def create(author: Author): Task[String]
+  /** Получить автора по имени. */
+  def findByName(name: String): Task[Option[Author]]
 
-  def update(id: UUID, author: Author): Task[Option[Author]]
+  /** Создать автора. */
+  def create(author: Author): Task[Option[Author]]
 
+  /** Изменить автора. */
+  def update(author: Author): Task[Option[Author]]
+
+  /** Удалить автора. */
   def delete(id: String): Task[Unit]
 }
 
 object AuthorRepository {
+  /** Сервис для получения всех авторов. */
   def all: ZIO[AuthorRepository, Throwable, List[Author]] =
-    ZIO.serviceWithZIO[AuthorRepository](_.all)
+    ZIO.serviceWithZIO[AuthorRepository](repo => repo.all)
 
+  /** Сервис для получения автора по ID. */
   def findById(id: String): ZIO[AuthorRepository, Throwable, Option[Author]] =
     ZIO.serviceWithZIO[AuthorRepository](repo => repo.findById(id))
 
-  def create(author: Author): ZIO[AuthorRepository, Throwable, String] =
+  /** Сервис для получения автора по имени. */
+  def findByName(name: String): ZIO[AuthorRepository, Throwable, Option[Author]] =
+    ZIO.serviceWithZIO[AuthorRepository](repo => repo.findByName(name))
+
+  /** Сервис для создания автора. */
+  def create(author: Author): ZIO[AuthorRepository, Throwable, Option[Author]] =
     ZIO.serviceWithZIO[AuthorRepository](repo => repo.create(author))
+
+  /** Сервис для изменения автора. */
+  def update(author: Author): ZIO[AuthorRepository, Throwable, Option[Author]] =
+    ZIO.serviceWithZIO[AuthorRepository](repo => repo.update(author))
+
+  /** Сервис для удаления автора. */
+  def delete(id: String): ZIO[AuthorRepository, Throwable, Unit] =
+    ZIO.serviceWithZIO[AuthorRepository](repo => repo.delete(id))
 }
