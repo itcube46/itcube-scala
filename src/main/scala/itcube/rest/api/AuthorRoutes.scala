@@ -1,7 +1,7 @@
 package itcube.rest.api
 
-import itcube.entity.Author
-import itcube.repository.author.AuthorRepository
+import itcube.entities.Author
+import itcube.repositories.author.AuthorRepository
 import zio._
 import zio.http._
 import zio.schema.codec.JsonCodec.schemaBasedBinaryCodec
@@ -61,7 +61,6 @@ object AuthorRoutes {
       },
 
       // POST /authors
-      // curl -i -X POST -H 'Content-Type: application/json' -d '{"name":"Roman","country":"Russia"}' http://127.0.0.1:8080/authors
       Method.POST / "authors" -> handler {
         (request: Request) =>
           for {
@@ -70,13 +69,17 @@ object AuthorRoutes {
               .create(author)
               .mapBoth(
                 error => Response.internalServerError(error.getMessage),
-                author => Response(body = Body.from(author))
+                {
+                  case Some(author) =>
+                    Response(body = Body.from(author))
+                  case None =>
+                    Response.notFound(s"Author not created!")
+                }
               )
           } yield response
       },
 
       // PATCH /authors
-      // curl -i -X PATCH -H 'Content-Type: application/json' -d '{"id":"bc03f935-439b-4165-ba3b-5dc8143d66ce","name":"Roma","country":"Russia"}' http://127.0.0.1:8080/authors
       Method.PATCH / "authors" -> handler {
         (request: Request) =>
           for {
@@ -85,13 +88,17 @@ object AuthorRoutes {
               .update(author)
               .mapBoth(
                 error => Response.internalServerError(error.getMessage),
-                author => Response(body = Body.from(author))
+                {
+                  case Some(author) =>
+                    Response(body = Body.from(author))
+                  case None =>
+                    Response.notFound(s"Author ${author.id} not updated!")
+                }
               )
           } yield response
       },
 
       // DELETE /authors/:id
-      // curl -i -X DELETE "http://127.0.0.1:8080/authors/d87f3a26-b6c5-429d-9cfc-f7f76f7611cb"
       Method.DELETE / "authors" / string("id") -> handler {
         (id: String, _: Request) => {
           AuthorRepository

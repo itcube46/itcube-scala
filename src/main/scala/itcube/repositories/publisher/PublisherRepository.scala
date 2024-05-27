@@ -1,6 +1,6 @@
-package itcube.repository.publisher
+package itcube.repositories.publisher
 
-import itcube.entity.Publisher
+import itcube.entities.Publisher
 import zio._
 
 /** Репозиторий издателей. */

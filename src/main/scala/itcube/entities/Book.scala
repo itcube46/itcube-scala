@@ -1,4 +1,4 @@
-package itcube.entity
+package itcube.entities
 
 import zio.schema._
 
@@ -15,6 +15,6 @@ case class Book(id: Option[UUID],
                 author: Option[Author])
 
 object Book {
-  // Автоматический вывод схемы класса данных книги
+  // Автоматический вывод схемы книги
   implicit val bookSchema: Schema[Book] = DeriveSchema.gen[Book]
 }

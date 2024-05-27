@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS public."Users"
 (
     "id" uuid NOT NULL,
     "name" character varying(50) NOT NULL,
-    "email" character varying(50) NOT NULL,
+    "email" character varying(50) NOT NULL UNIQUE,
     "password" character varying(50) NOT NULL,
 
     CONSTRAINT "UsersPK" PRIMARY KEY ("id")
@@ -70,10 +70,14 @@ CREATE TABLE IF NOT EXISTS public."Users"
 -- Пользователи-Книги
 CREATE TABLE IF NOT EXISTS public."UsersBooks"
 (
+    "id" uuid NOT NULL,
     "userId" uuid NOT NULL,
     "bookId" uuid NOT NULL,
+    "progress" real,
+    "rating" integer,
+    "comment" text,
 
-    CONSTRAINT "UserBookPK" PRIMARY KEY ("userId", "bookId"),
+    CONSTRAINT "UserBookPK" PRIMARY KEY ("id"),
     CONSTRAINT "BookFK" FOREIGN KEY ("bookId")
         REFERENCES public."Books" ("id") MATCH SIMPLE
         ON UPDATE NO ACTION
@@ -81,5 +85,6 @@ CREATE TABLE IF NOT EXISTS public."UsersBooks"
     CONSTRAINT "UserFK" FOREIGN KEY ("userId")
         REFERENCES public."Users" ("id") MATCH SIMPLE
         ON UPDATE NO ACTION
-        ON DELETE NO ACTION
+        ON DELETE NO ACTION,
+    CHECK (("rating" IS NULL) OR ("rating" BETWEEN 0 AND 5))
 );

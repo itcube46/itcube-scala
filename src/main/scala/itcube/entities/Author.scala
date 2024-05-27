@@ -1,4 +1,4 @@
-package itcube.entity
+package itcube.entities
 
 import zio.schema._
 
@@ -10,6 +10,6 @@ case class Author(id: Option[UUID],
                   country: Option[String])
 
 object Author {
-  // Автоматический вывод схемы класса данных автора
+  // Автоматический вывод схемы автора
   implicit val authorSchema: Schema[Author] = DeriveSchema.gen[Author]
 }

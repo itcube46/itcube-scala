@@ -1,4 +1,4 @@
-package itcube.entity
+package itcube.entities
 
 import zio.schema._
 
@@ -10,6 +10,6 @@ case class Publisher(id: Option[UUID],
                      country: String)
 
 object Publisher {
-  // Автоматический вывод схемы класса данных издателя
+  // Автоматический вывод схемы издателя
   implicit val publisherSchema: Schema[Publisher] = DeriveSchema.gen[Publisher]
 }

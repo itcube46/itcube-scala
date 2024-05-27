@@ -1,7 +1,7 @@
 package itcube.rest.api
 
-import itcube.entity.Publisher
-import itcube.repository.publisher.PublisherRepository
+import itcube.entities.Publisher
+import itcube.repositories.publisher.PublisherRepository
 import zio._
 import zio.http._
 import zio.schema.codec.JsonCodec.schemaBasedBinaryCodec
@@ -61,7 +61,6 @@ object PublisherRoutes {
       },
 
       // POST /publishers
-      // curl -i -X POST -H 'Content-Type: application/json' -d '{"name":"BHV","country":"Russia"}' http://127.0.0.1:8080/publishers
       Method.POST / "publishers" -> handler {
         (request: Request) =>
           for {
@@ -70,13 +69,17 @@ object PublisherRoutes {
               .create(publisher)
               .mapBoth(
                 error => Response.internalServerError(error.getMessage),
-                publisher => Response(body = Body.from(publisher))
+                {
+                  case Some(publisher) =>
+                    Response(body = Body.from(publisher))
+                  case None =>
+                    Response.notFound(s"Publisher not created!")
+                }
               )
           } yield response
       },
 
       // PATCH /publishers
-      // curl -i -X PATCH -H 'Content-Type: application/json' -d '{"id":"bc03f935-439b-4165-ba3b-5dc8143d66ce","name":"BHV","country":"Russia"}' http://127.0.0.1:8080/publishers
       Method.PATCH / "publishers" -> handler {
         (request: Request) =>
           for {
@@ -85,14 +88,18 @@ object PublisherRoutes {
               .update(publisher)
               .mapBoth(
                 error => Response.internalServerError(error.getMessage),
-                author => Response(body = Body.from(author))
+                {
+                  case Some(publisher) =>
+                    Response(body = Body.from(publisher))
+                  case None =>
+                    Response.notFound(s"Publisher ${publisher.id} not updated!")
+                }
               )
           } yield response
       },
 
       // DELETE /publishers/:id
-      // curl -i -X DELETE "http://127.0.0.1:8080/publishers/d87f3a26-b6c5-429d-9cfc-f7f76f7611cb"
-      Method.DELETE / "publishers" / string("id") -> handler(
+      Method.DELETE / "publishers" / string("id") -> handler {
         (id: String, _: Request) => {
           PublisherRepository
             .delete(id)
@@ -101,7 +108,7 @@ object PublisherRoutes {
               _ => Response.ok
             )
         }
-      )
+      }
     )
   }
 }

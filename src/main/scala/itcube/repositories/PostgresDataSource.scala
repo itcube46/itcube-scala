@@ -1,4 +1,4 @@
-package itcube.repository
+package itcube.repositories
 
 import io.getquill.jdbczio.Quill
 import zio.ZLayer

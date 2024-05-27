@@ -1,7 +1,7 @@
 package itcube.rest.api
 
-import itcube.entity.Book
-import itcube.repository.book.BookRepository
+import itcube.entities.Book
+import itcube.repositories.book.BookRepository
 import zio._
 import zio.http._
 import zio.schema.codec.JsonCodec.schemaBasedBinaryCodec
@@ -22,7 +22,7 @@ object BookRoutes {
                 books => Response(body = Body.from(books))
               )
           } else {
-            val titles: Chunk[String] = request.url.queryParams("name")
+            val titles: Chunk[String] = request.url.queryParams("title")
             if (titles.nonEmpty) {
               val title = titles(0)
               BookRepository
@@ -60,20 +60,54 @@ object BookRoutes {
         }
       },
 
-      // TODO: имплементировать вставку в БД
       // POST /books
-      // curl -i -X POST -H 'Content-Type: application/json' -d '{"title":"test","publisher":{"name":"test","country":"Russia"},"author":{"name":"Roman","country":"Russia"}}' http://127.0.0.1:8080/books
       Method.POST / "books" -> handler {
         (request: Request) =>
           for {
-            author <- request.body.to[Book].orElseFail(Response.badRequest)
+            book <- request.body.to[Book].orElseFail(Response.badRequest)
             response <- BookRepository
-              .create(author)
+              .create(book)
               .mapBoth(
                 error => Response.internalServerError(error.getMessage),
-                book => Response(body = Body.from(book))
+                {
+                  case Some(book) =>
+                    Response(body = Body.from(book))
+                  case None =>
+                    Response.notFound(s"Book not created!")
+                }
               )
           } yield response
+      },
+
+      // PATCH /books
+      Method.PATCH / "books" -> handler {
+        (request: Request) =>
+          for {
+            book <- request.body.to[Book].orElseFail(Response.badRequest)
+            response <- BookRepository
+              .update(book)
+              .mapBoth(
+                error => Response.internalServerError(error.getMessage),
+                {
+                  case Some(book) =>
+                    Response(body = Body.from(book))
+                  case None =>
+                    Response.notFound(s"Book ${book.id} not updated!")
+                }
+              )
+          } yield response
+      },
+
+      // DELETE /books/:id
+      Method.DELETE / "books" / string("id") -> handler {
+        (id: String, _: Request) => {
+          BookRepository
+            .delete(id)
+            .mapBoth(
+              error => Response.internalServerError(error.getMessage),
+              _ => Response.ok
+            )
+        }
       }
     )
   }

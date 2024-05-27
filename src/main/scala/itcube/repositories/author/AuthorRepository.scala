@@ -1,6 +1,6 @@
-package itcube.repository.author
+package itcube.repositories.author
 
-import itcube.entity.Author
+import itcube.entities.Author
 import zio._
 
 /** Репозиторий авторов. */

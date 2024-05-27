@@ -1,17 +1,17 @@
-package itcube.repository.publisher
+package itcube.repositories.publisher
 
 import io.getquill._
-import itcube.entity.Publisher
-import itcube.repository.PostgresDataSource
+import itcube.entities.Publisher
+import itcube.repositories.PostgresDataSource
 import zio._
 
 import java.util.UUID
 import javax.sql.DataSource
 
 /** Класс данных табличного представления издателей. */
-case class Publishers(id: UUID,
-                      name: String,
-                      country: String)
+final case class Publishers(id: UUID,
+                            name: String,
+                            country: String)
 
 /** Репозиторий издателей для СУБД PostgreSQL. */
 case class PgPublisherRepository(ds: DataSource) extends PublisherRepository {
@@ -21,71 +21,98 @@ case class PgPublisherRepository(ds: DataSource) extends PublisherRepository {
 
   private val dsLayer: ULayer[DataSource] = ZLayer.succeed(ds)
 
-  /** Схема Quill для запросов. */
-  private val publishersSchema: Quoted[EntityQuery[Publishers]] = quote {
-    query[Publishers]
+  /** Преобразование табличного представления данных в сущность. */
+  private def toPublisher: Publishers => Publisher = {
+    row =>
+      Publisher(
+        Some(row.id),
+        row.name,
+        row.country
+      )
   }
 
   /** Получить всех издателей. */
   override def all: Task[List[Publisher]] = {
-    ctx
-      .run(publishersSchema
-        .map(row => Publisher(Some(row.id), row.name, row.country)))
+    run {
+      quote {
+        query[Publishers]
+      }
+    }
+      .map(_.map(toPublisher))
       .provide(dsLayer)
   }
 
   /** Получить издателя по ID. */
   override def findById(id: String): Task[Option[Publisher]] = {
     val uuid = UUID.fromString(id)
-    ctx
-      .run(publishersSchema
-        .filter(row => row.id == lift(uuid))
-        .map(row => Publisher(Some(row.id), row.name, row.country)))
+    run {
+      quote {
+        query[Publishers].filter(_.id == lift(uuid))
+      }
+    }
       .map(_.headOption)
+      .map(_.map(toPublisher))
       .provide(dsLayer)
   }
 
   /** Получить издателя по названию. */
   override def findByName(name: String): Task[Option[Publisher]] = {
-    ctx
-      .run(publishersSchema
-        .filter(row => row.name == lift(name))
-        .map(row => Publisher(Some(row.id), row.name, row.country)))
+    run {
+      quote {
+        query[Publishers].filter(_.name == lift(name))
+      }
+    }
       .map(_.headOption)
+      .map(_.map(toPublisher))
       .provide(dsLayer)
   }
 
   /** Создать издателя. */
   override def create(publisher: Publisher): Task[Option[Publisher]] = {
-    val created =
+    val created = transaction {
       for {
         id <- Random.nextUUID
-        result <- ctx
-          .run(publishersSchema
-            .insertValue(lift(Publishers(id, publisher.name, publisher.country)))
-            .returning(row => Publisher(Some(row.id), row.name, row.country)))
+        result <- run {
+          quote {
+            query[Publishers]
+              .insertValue(lift(Publishers(id, publisher.name, publisher.country)))
+              .returning(r => r)
+          }
+        }
       } yield result
-
-    created.option.provide(dsLayer)
+    }
+    created.option.map(_.map(toPublisher)).provide(dsLayer)
   }
 
   /** Изменить издателя. */
   override def update(publisher: Publisher): Task[Option[Publisher]] = {
-    ctx
-      .run(publishersSchema
-        .updateValue(lift(Publishers(publisher.id.get, publisher.name, publisher.country)))
-        .returning(row => Publisher(Some(row.id), row.name, row.country)))
+    transaction {
+      run {
+        quote {
+          query[Publishers]
+            .filter(_.id == lift(publisher.id.get))
+            .updateValue(lift(Publishers(publisher.id.get, publisher.name, publisher.country)))
+            .returning(r => r)
+        }
+      }
+    }
       .option
+      .map(_.map(toPublisher))
       .provide(dsLayer)
   }
 
   /** Удалить издателя. */
   override def delete(id: String): Task[Unit] = {
-    val uuid = UUID.fromString(id)
-    ctx
-      .run(publishersSchema
-        .filter(row => row.id == lift(uuid))
-        .delete)
+    transaction {
+      val uuid = UUID.fromString(id)
+      run {
+        quote {
+          query[Publishers]
+            .filter(_.id == lift(uuid))
+            .delete
+        }
+      }
+    }
       .unit
       .provide(dsLayer)
   }

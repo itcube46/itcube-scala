@@ -1,10 +1,11 @@
 package itcube
 
 import itcube.config.HttpServerConfig
-import itcube.repository.author.PgAuthorRepository
-import itcube.repository.book.PgBookRepository
-import itcube.repository.publisher.PgPublisherRepository
-import itcube.rest.api.{AuthorRoutes, BookRoutes, PublisherRoutes}
+import itcube.repositories.author.PgAuthorRepository
+import itcube.repositories.book.PgBookRepository
+import itcube.repositories.publisher.PgPublisherRepository
+import itcube.repositories.user.PgUserRepository
+import itcube.rest.api.{AuthorRoutes, BookRoutes, PublisherRoutes, UserRoutes}
 import zio._
 import zio.config.typesafe.FromConfigSourceTypesafe
 import zio.http.Middleware.{CorsConfig, cors}
@@ -43,7 +44,7 @@ object App extends ZIOAppDefault {
   private val corsConfig: CorsConfig = CorsConfig() // по умолчанию
 
   // Конкатенация "маршрутов"
-  private val routes = PublisherRoutes() ++ AuthorRoutes() ++ BookRoutes()
+  private val routes = PublisherRoutes() ++ AuthorRoutes() ++ BookRoutes() ++ UserRoutes()
 
   // Конвертация "маршрутов" в [[HttpApp]] и применение конфигурации CORS
   private val httpApp = routes.toHttpApp @@ cors(corsConfig)
@@ -56,6 +57,7 @@ object App extends ZIOAppDefault {
         port => Console.printLine(s"Started server on port: $port")
       ) *> ZIO.never)
       .provide(
+        PgUserRepository.live,
         PgPublisherRepository.live,
         PgAuthorRepository.live,
         PgBookRepository.live,
