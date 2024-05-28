@@ -108,6 +108,18 @@ object BookRoutes {
               _ => Response.ok
             )
         }
+      },
+
+      // POST /books/:bookId/:userId/:comment
+      Method.POST / "books" / string("bookId") / string("userId") / string("text") -> handler {
+        (bookId: String, userId: String, text: String, _: Request) => {
+          BookRepository
+            .comment(text, userId, bookId)
+            .mapBoth(
+              error => Response.internalServerError(error.getMessage),
+              _ => Response.ok
+            )
+        }
       }
     )
   }

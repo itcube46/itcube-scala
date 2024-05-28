@@ -23,7 +23,7 @@ trait BookRepository {
   /** Удалить книгу. */
   def delete(id: String): Task[Unit]
 
-  /** Добавляет комментарий к книге от пользователя. */
+  /** Добавляет комментарий пользователя к книге. */
   def comment(text: String, userId: String, bookId: String): Task[Unit]
 }
 
@@ -51,4 +51,8 @@ object BookRepository {
   /** Сервис для удаления книги. */
   def delete(id: String): ZIO[BookRepository, Throwable, Unit] =
     ZIO.serviceWithZIO[BookRepository](_.delete(id))
+
+  /** Сервис для добавления комментария пользователя. */
+  def comment(text: String, userId: String, bookId: String): ZIO[BookRepository, Throwable, Unit] =
+    ZIO.serviceWithZIO[BookRepository](_.comment(text, userId, bookId))
 }

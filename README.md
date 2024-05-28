@@ -32,6 +32,10 @@ curl -i -X PATCH -H 'Content-Type: application/json' -d '{"id":"???","title":"te
 curl -i -X DELETE "http://127.0.0.1:8080/books/???"
 ```
 
+```bash
+curl -i -X POST "http://127.0.0.1:8080/books/???/???/???"
+```
+
 ### Publishers
 
 ```bash

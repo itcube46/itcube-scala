@@ -28,7 +28,7 @@ final case class UsersBooks(id: UUID,
                             userId: UUID,
                             bookId: UUID,
                             progress: Float,
-                            rating: Integer,
+                            rating: Int,
                             comment: String)
 
 case class PgBookRepository(ds: DataSource) extends BookRepository {
@@ -302,14 +302,15 @@ case class PgBookRepository(ds: DataSource) extends BookRepository {
   override def comment(text: String, userId: String, bookId: String): Task[Unit] = {
     val result = transaction {
       for {
-        userBookUUID <- getUserBook(userId, bookId)
-        userBook <- setUserComment(text, userBookUUID, userId, bookId)
+        uuid <- userBookId(userId, bookId)
+        userBook <- saveComment(text, uuid, userId, bookId)
       } yield userBook
     }
     result.unit.provide(dsLayer)
   }
 
-  private def getUserBook(userId: String, bookId: String): Task[Option[UUID]] = {
+  /** Возвращает ID отношения "Пользователь-Книга", если оно существует. */
+  private def userBookId(userId: String, bookId: String): Task[Option[UUID]] = {
     val userUuid = UUID.fromString(userId)
     val bookUuid = UUID.fromString(bookId)
     run {
@@ -323,10 +324,11 @@ case class PgBookRepository(ds: DataSource) extends BookRepository {
       .provide(dsLayer)
   }
 
-  private def setUserComment(text: String,
-                             userBookId: Option[UUID],
-                             userId: String,
-                             bookId: String): Task[Option[UsersBooks]] = {
+  /** Сохраняет комментарий пользователя в отношении "Пользователь-Книга". */
+  private def saveComment(text: String,
+                          userBookId: Option[UUID],
+                          userId: String,
+                          bookId: String): Task[Option[UsersBooks]] = {
     if (userBookId.isDefined) {
       run {
         quote {
