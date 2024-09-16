@@ -1,6 +1,9 @@
 # itcube-scala
 
-## Пример backend-приложения на Scala и ZIO
+## Прототип backend-приложения на Scala и ZIO
+
+Этот прототип помещён в архив.
+Актуальная версия: https://github.com/gvoz-dev/librarium
 
 ## Примеры команд CURL
 

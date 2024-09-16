@@ -60,29 +60,6 @@ object UserRoutes {
         }
       },
 
-      // Авторизация пользователя
-      // TODO: представленная реализация является наивной и небезопасной!
-      // GET /login/:email/:password
-      Method.GET / "login" / string("email") / string("password") -> handler {
-        (email: String, password: String, _: Request) => {
-          UserRepository
-            .findByEmail(email)
-            .mapBoth(
-              error => Response.internalServerError(error.getMessage),
-              {
-                case Some(user) =>
-                  if (user.password == password) {
-                    Response(body = Body.from(user))
-                  } else {
-                    Response.unauthorized(s"User $email unauthorized!")
-                  }
-                case None =>
-                  Response.notFound(s"User $email not found!")
-              }
-            )
-        }
-      },
-
       // Регистрация пользователя
       // POST /users
       Method.POST / "users" -> handler {
